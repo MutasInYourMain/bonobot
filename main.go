@@ -9,7 +9,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var dc *discordgo.Session
+var Config BonobotConfig
+var banPatterns BanwordPatterns
 
 func GetApiKey() string {
 	key, exists := os.LookupEnv("DISCORD_API_KEY")
@@ -23,8 +24,14 @@ func GetApiKey() string {
 }
 
 func main() {
+	Config, err := ReadConfig()
+	if err != nil {
+		fmt.Println("Error reading config:", err)
+		return
+	}
+
+	banPatterns = BuildPatterns(Config.Banwords)
 	api_key := GetApiKey()
-	fmt.Println("hello, go!")
 
 	dc, err := discordgo.New("Bot " + api_key)
 	if err != nil {
@@ -61,5 +68,8 @@ func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 			message := fmt.Sprintf("%s, nieznana komenda. Aby uzyskać listę komend, użyj /bonobot_help", m.Author.Mention())
 			s.ChannelMessageSend(m.ChannelID, message)
 		}
+	} else {
+		// If it is not a message, filter it
+		FilterMessage(s, m, banPatterns)
 	}
 }
