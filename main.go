@@ -1,11 +1,15 @@
-package main;
+package main
+
 import (
 	"fmt"
 	"os"
-	"time"
+	"os/signal"
+	"syscall"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+var dc *discordgo.Session
 
 func GetApiKey() string {
 	key, exists := os.LookupEnv("DISCORD_API_KEY")
@@ -33,9 +37,29 @@ func main() {
 		return
 	}
 
-	for {
-		dc.ChannelMessageSendTTS("273429211610480643", "Bonobo nigdy nie miał kobiety")
-		time.Sleep(time.Second * 30)
-	}
+	dc.AddHandler(onMessage)
 
+	sc := make(chan os.Signal, 1)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	<-sc
+
+	dc.Close()
+}
+
+func onMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	// If it is message (starts with /), parse and execute it
+	if m.Content[0] == '/' {
+		command, params := ParseCommand(m.Content)
+		err := s.ChannelMessageDelete(m.ChannelID, m.Message.ID)
+		if err != nil {
+			fmt.Println("Error deleting message: ", err)
+		}
+
+		if command != nil {
+			command.call(params, s, m)
+		} else {
+			message := fmt.Sprintf("%s, nieznana komenda. Aby uzyskać listę komend, użyj /bonobot_help", m.Author.Mention())
+			s.ChannelMessageSend(m.ChannelID, message)
+		}
+	}
 }
