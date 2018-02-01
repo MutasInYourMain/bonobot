@@ -1,9 +1,9 @@
 package main
 
 import (
-	"regexp"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	"regexp"
 )
 
 // BanwordPatterns contains list of banword patterns

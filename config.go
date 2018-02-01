@@ -1,8 +1,8 @@
 package main
 
 import (
-	"os"
 	"encoding/json"
+	"os"
 )
 
 // BonobotConfig contains all data that should be in config file

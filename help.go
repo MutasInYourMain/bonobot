@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"github.com/bwmarrin/discordgo"
 )
 
